@@ -1,6 +1,7 @@
 package hello.core.scope;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -31,27 +32,37 @@ public class SingletonWithPrototypeTest1 {
 
         ClientBean clientBean1 = ac.getBean(ClientBean.class);
         int count1 = clientBean1.logic();
-        assertThat(count1).isEqualTo(1); // 같은 prototypeBean
+        assertThat(count1).isEqualTo(1);
 
         ClientBean clientBean2 = ac.getBean(ClientBean.class);
         int count2 = clientBean2.logic();
-        assertThat(count2).isEqualTo(2); // 같은 prototypeBean
+//        assertThat(count2).isEqualTo(2);
+        assertThat(count2).isEqualTo(1);
     }
 
     @Scope("singleton")
     static class ClientBean {
 
-        private final PrototypeBean prototypeBean; // 생성 시점에 주입
-
         @Autowired
-        public ClientBean(PrototypeBean prototypeBean) { // 프로토타입 스코프 빈을 주입받음
-            this.prototypeBean = prototypeBean;
-        }
+        private ObjectProvider<PrototypeBean> prototypeBeanProvider;
 
         public int logic() {
+            PrototypeBean prototypeBean = prototypeBeanProvider.getObject();
             prototypeBean.addCount();
             return prototypeBean.getCount();
         }
+
+//        private final PrototypeBean prototypeBean; // 생성 시점에 주입
+//
+//        @Autowired
+//        public ClientBean(PrototypeBean prototypeBean) { // 프로토타입 스코프 빈을 주입받음
+//            this.prototypeBean = prototypeBean;
+//        }
+//
+//        public int logic() {
+//            prototypeBean.addCount();
+//            return prototypeBean.getCount();
+//        }
 
         // 요청마다 새로운 prototypeBean 생성하게끔 하려면.. (굳이.. 좋은 방법은 아님)
         /*
